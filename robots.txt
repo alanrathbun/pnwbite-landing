@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pnwbite.com/sitemap.xml

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PNW Bite — Pacific Northwest Fishing Reports</title>
+<meta property="og:title" content="PNW Bite" />
+<meta property="og:description" content="Daily Pacific Northwest fishing reports for pikeminnow and salmon/steelhead." />
+<meta property="og:url" content="https://pnwbite.com/" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta name="description" content="Daily Pacific Northwest fishing reports — pikeminnow sport-reward stations, salmon and steelhead launches across the upper Columbia and Snake river systems." />
+<style>
+:root {
+  --bg: #0d1117; --fg: #e6edf3; --muted: #8b949e;
+  --card: #161b22; --border: #30363d;
+  --good: #3fb950; --fair: #d29922; --poor: #f85149;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font: 16px/1.5 system-ui, -apple-system, sans-serif;
+  margin: 0; padding: 2rem 1rem;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh;
+}
+.wrap { max-width: 700px; width: 100%; }
+header { text-align: center; margin-bottom: 2rem; }
+h1 { font-size: 2.5rem; margin: 0 0 0.25rem; letter-spacing: -0.02em; }
+.tagline { color: var(--muted); font-size: 1rem; margin: 0; }
+.grid { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1.25rem; text-decoration: none; color: var(--fg);
+  display: flex; flex-direction: column; gap: 0.5rem;
+  transition: border-color 0.15s;
+}
+.card:hover { border-color: var(--good); }
+.card h2 { margin: 0; font-size: 1.25rem; }
+.card .desc { color: var(--muted); font-size: 0.9rem; flex: 1; margin: 0; }
+.status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+.dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--muted);
+}
+.dot.fresh { background: var(--good); }
+.dot.stale { background: var(--fair); }
+.dot.error { background: var(--poor); }
+.cta { color: var(--good); font-weight: 500; font-size: 0.95rem; margin-top: auto; }
+footer { text-align: center; color: var(--muted); font-size: 0.85rem; margin-top: 2rem; }
+@media (max-width: 600px) {
+  .grid { grid-template-columns: 1fr; }
+  h1 { font-size: 2rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>PNW Bite</h1>
+  <p class="tagline">Daily Pacific Northwest fishing reports.</p>
+</header>
+
+<div class="grid">
+  <a class="card" href="https://pikeminnow.pnwbite.com/" data-app="pikeminnow" data-host="pikeminnow.pnwbite.com">
+    <h2>Pikeminnow Sport-Reward</h2>
+    <p class="desc">21 NPSRP check-in stations on the Columbia. CPUE-driven station rankings, flow + weather forecast.</p>
+    <div class="status">
+      <span class="dot" data-dot></span>
+      <span data-status>Loading…</span>
+    </div>
+    <span class="cta">Open report →</span>
+  </a>
+
+  <a class="card" href="https://salmon.pnwbite.com/" data-app="salmon" data-host="salmon.pnwbite.com">
+    <h2>Salmon &amp; Steelhead</h2>
+    <p class="desc">30 boat launches across the upper Columbia and Snake. Run-timing, regulations, bait recommendations.</p>
+    <div class="status">
+      <span class="dot" data-dot></span>
+      <span data-status>Loading…</span>
+    </div>
+    <span class="cta">Open report →</span>
+  </a>
+</div>
+
+<footer>Built by Alan · v1 (2026)</footer>
+</div>
+
+<script>
+async function refresh() {
+  for (const card of document.querySelectorAll('[data-app]')) {
+    const host = card.dataset.host;
+    const dot = card.querySelector('[data-dot]');
+    const txt = card.querySelector('[data-status]');
+    try {
+      const r = await fetch(`https://${host}/health`, { cache: 'no-cache' });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      const mtime = j.report_html_mtime || j.report_data_mtime;
+      if (!mtime) throw new Error('no mtime');
+      const ageMs = Date.now() - (mtime * 1000);
+      const ageHours = Math.floor(ageMs / 3.6e6);
+      if (ageHours < 25) {
+        dot.className = 'dot fresh';
+        txt.textContent = ageHours < 1
+          ? 'Fresh (< 1h ago)'
+          : `Updated ${ageHours}h ago`;
+      } else {
+        dot.className = 'dot stale';
+        txt.textContent = `Stale (${Math.floor(ageHours/24)}d ago)`;
+      }
+    } catch (e) {
+      dot.className = 'dot error';
+      txt.textContent = 'Unreachable';
+    }
+  }
+}
+refresh();
+setInterval(refresh, 60000);
+</script>
+</body>
+</html>
