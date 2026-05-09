@@ -96,9 +96,13 @@ async function refresh() {
       const r = await fetch(`https://${host}/health`, { cache: 'no-cache' });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const j = await r.json();
-      const mtime = j.report_html_mtime || j.report_data_mtime;
-      if (!mtime) throw new Error('no mtime');
-      const ageMs = Date.now() - (mtime * 1000);
+      // salmon uses Unix-epoch numeric fields; pikeminnow uses ISO-string j.mtime.
+      let mtimeMs = null;
+      if (j.report_html_mtime) mtimeMs = j.report_html_mtime * 1000;
+      else if (j.report_data_mtime) mtimeMs = j.report_data_mtime * 1000;
+      else if (j.mtime) mtimeMs = Date.parse(j.mtime);
+      if (!mtimeMs || isNaN(mtimeMs)) throw new Error('no mtime');
+      const ageMs = Date.now() - mtimeMs;
       const ageHours = Math.floor(ageMs / 3.6e6);
       if (ageHours < 25) {
         dot.className = 'dot fresh';
