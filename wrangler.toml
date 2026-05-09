@@ -6,7 +6,7 @@ compatibility_date = "2026-01-01"
 # All existing static files (index.html, robots.txt, sitemap.xml) get served
 # automatically when no Worker route matches.
 [assets]
-directory = "."
+directory = "./public"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 
