@@ -1,0 +1,21 @@
+name = "pnwbite-landing"
+main = "src/worker.js"
+compatibility_date = "2026-01-01"
+
+# Static assets binding — Cloudflare's modern Workers Sites equivalent.
+# All existing static files (index.html, robots.txt, sitemap.xml) get served
+# automatically when no Worker route matches.
+[assets]
+directory = "."
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+# SendEmail binding. The destination_address must be a verified destination
+# in your Cloudflare Email Routing settings. Sender domain (pnwbite.com) must
+# also be verified for sending.
+[[send_email]]
+name = "MAILER"
+destination_address = "arathbun.pdm@gmail.com"
+
+# MAILER_SHARED_SECRET is set via `wrangler secret put MAILER_SHARED_SECRET`
+# (or via the Cloudflare dashboard). Do NOT put the secret in this file.
